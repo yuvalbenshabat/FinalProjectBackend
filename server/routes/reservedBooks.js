@@ -1,4 +1,4 @@
-// server/routes/reservedBooks.js - גרסה חדשה עם $lookup על books להביא subject דינמית!
+// server/routes/reservedBooks.js
 
 const express = require('express');
 const router = express.Router();
@@ -6,7 +6,7 @@ const DonatedBook = require('../models/donatedBookModel');
 const ReservedBook = require('../models/reservedBookModel');
 const Book = require('../models/Book');
 
-// ✅ שריון ספר - פשוט מעביר נתונים
+// ✅ שריון ספר
 router.post('/reserve/:id', async (req, res) => {
   try {
     const donatedBookId = req.params.id;
@@ -30,7 +30,7 @@ router.post('/reserve/:id', async (req, res) => {
     });
 
     await reservedBook.save();
-    await bookToReserve.deleteOne();
+    await DonatedBook.findByIdAndDelete(donatedBookId); // מחיקת ספר מתרומות
 
     res.status(200).json({ message: '✅ הספר שוריין בהצלחה', reservedBook });
   } catch (error) {
@@ -39,8 +39,8 @@ router.post('/reserve/:id', async (req, res) => {
   }
 });
 
-// ✅ ביטול שריון ספר והחזרה לתרומות
-router.post('/cancel/:id', async (req, res) => {
+// ✅ ביטול שריון
+router.delete('/cancel/:id', async (req, res) => {
   try {
     const reservedBookId = req.params.id;
 
@@ -59,7 +59,7 @@ router.post('/cancel/:id', async (req, res) => {
     });
 
     await returnedBook.save();
-    await reservedBook.deleteOne();
+    await ReservedBook.findByIdAndDelete(reservedBookId); // הסרת השריון
 
     res.status(200).json({ message: '✅ השריון בוטל והספר חזר למאגר התרומות' });
   } catch (error) {
@@ -68,7 +68,7 @@ router.post('/cancel/:id', async (req, res) => {
   }
 });
 
-// ✅ אישור סופי - מחיקת ספר משוריין
+// ✅ אישור קבלה
 router.delete('/confirm/:id', async (req, res) => {
   try {
     const reservedBookId = req.params.id;
@@ -80,7 +80,7 @@ router.delete('/confirm/:id', async (req, res) => {
   }
 });
 
-// ✅ שליפת ספרים משוריינים עם subject אמיתי דרך $lookup
+// ✅ שליפה של ספרים משוריינים עם subject מתוך books
 router.get('/user/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;

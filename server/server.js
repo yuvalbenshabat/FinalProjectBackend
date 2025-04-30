@@ -13,8 +13,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 📢 התחברות למונגו
-mongoose.connect("mongodb+srv://ofekwe:FPDBM100@cluster0.lza1t9s.mongodb.net/textbooks")
+// 📢 התחברות למונגו (שינוי כאן)
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
