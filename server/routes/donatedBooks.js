@@ -19,7 +19,7 @@ router.get("/", async (req, res) => {
     // 2. עבור על כל ספר ושלוף את פרטי המשתמש לפי userId (שהוא מחרוזת)
     const booksWithDonorInfo = await Promise.all(
       books.map(async (book) => {
-        const donor = await User.findById(book.userId).select("username city");
+        const donor = await User.findById(book.userId).select("username city phone");
         return {
           ...book.toObject(),
           donor: donor || null
