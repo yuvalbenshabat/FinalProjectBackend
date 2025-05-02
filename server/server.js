@@ -1,6 +1,11 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+
+require("dotenv").config();
+
+
+
 const User = require("./models/userModel");
 const bookRoutes = require("./routes/books");
 const donatedBooksRouter = require("./routes/donatedBooks");
