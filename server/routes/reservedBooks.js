@@ -1,16 +1,15 @@
-// server/routes/reservedBooks.js
-
 const express = require('express');
 const router = express.Router();
 const DonatedBook = require('../models/donatedBookModel');
 const ReservedBook = require('../models/reservedBookModel');
 const Book = require('../models/Book');
+const Wishlist = require('../models/wishlistModel'); // ✅ חדש
 
 // ✅ שריון ספר
 router.post('/reserve/:id', async (req, res) => {
   try {
     const donatedBookId = req.params.id;
-    const { reservedBy } = req.body;
+    const { reservedBy, wishlistBookId } = req.body; // ✅ קלט נוסף
 
     const bookToReserve = await DonatedBook.findById(donatedBookId);
     if (!bookToReserve) {
@@ -26,11 +25,12 @@ router.post('/reserve/:id', async (req, res) => {
       grade: bookToReserve.grade,
       barcode: bookToReserve.barcode,
       condition: bookToReserve.condition,
-      reservedUntil: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+      reservedUntil: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      wishlistBookId: wishlistBookId || null // ✅ קישור אם קיים
     });
 
     await reservedBook.save();
-    await DonatedBook.findByIdAndDelete(donatedBookId); // מחיקת ספר מתרומות
+    await DonatedBook.findByIdAndDelete(donatedBookId); // הסרה מהתרומות
 
     res.status(200).json({ message: '✅ הספר שוריין בהצלחה', reservedBook });
   } catch (error) {
@@ -59,7 +59,7 @@ router.delete('/cancel/:id', async (req, res) => {
     });
 
     await returnedBook.save();
-    await ReservedBook.findByIdAndDelete(reservedBookId); // הסרת השריון
+    await ReservedBook.findByIdAndDelete(reservedBookId);
 
     res.status(200).json({ message: '✅ השריון בוטל והספר חזר למאגר התרומות' });
   } catch (error) {
@@ -72,7 +72,19 @@ router.delete('/cancel/:id', async (req, res) => {
 router.delete('/confirm/:id', async (req, res) => {
   try {
     const reservedBookId = req.params.id;
+
+    const reservedBook = await ReservedBook.findById(reservedBookId);
+    if (!reservedBook) {
+      return res.status(404).json({ message: "ספר משוריין לא נמצא" });
+    }
+
+    // ✅ אם קושר ל־wishlist → מחק גם שם
+    if (reservedBook.wishlistBookId) {
+      await Wishlist.findByIdAndDelete(reservedBook.wishlistBookId);
+    }
+
     await ReservedBook.findByIdAndDelete(reservedBookId);
+
     res.status(200).json({ message: '✅ הספר אושר ונמחק מהמאגר' });
   } catch (error) {
     console.error('❌ שגיאה באישור קבלה:', error);
@@ -80,7 +92,7 @@ router.delete('/confirm/:id', async (req, res) => {
   }
 });
 
-// ✅ שליפה של ספרים משוריינים עם subject מתוך books
+// ✅ שליפה של ספרים משוריינים עם subject
 router.get('/user/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;

@@ -40,7 +40,15 @@ const reservedBookSchema = new mongoose.Schema({
   reservedUntil: {
     type: Date,
     required: true
+  },
+
+  // ✅ שדה חדש - מזהה הספר מרשימת המשאלות אם רלוונטי
+  wishlistBookId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Wishlist',
+    default: null
   }
+
 }, { timestamps: true });
 
 const ReservedBook = mongoose.model('ReservedBook', reservedBookSchema);

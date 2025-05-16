@@ -45,3 +45,15 @@ router.get("/barcode/:barcode", async (req, res) => {
 });
 
 module.exports = router;
+
+
+// ✅ שליפת כל הספרים המאושרים
+router.get("/", async (req, res) => {
+  try {
+    const books = await Book.find();
+    res.json(books);
+  } catch (err) {
+    console.error("❌ שגיאה בשליפת ספרים:", err);
+    res.status(500).json({ error: "שגיאה בשליפת ספרים" });
+  }
+});

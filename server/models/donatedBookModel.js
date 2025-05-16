@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 
 const donatedBookSchema = new mongoose.Schema({
   userId: {
-    type: String,   // מזהה המשתמש שתרם את הספר
+    type: mongoose.Schema.Types.ObjectId, // שינוי מ-String ל-ObjectId
+    ref: 'User',                          // קישור למודל User
     required: true
   },
   bookTitle: {
@@ -18,14 +19,14 @@ const donatedBookSchema = new mongoose.Schema({
     required: true
   },
   barcode: {
-    type: mongoose.Schema.Types.Mixed,  // תמיכה גם במספר וגם במחרוזת
+    type: mongoose.Schema.Types.Mixed, // תמיכה גם במספר וגם במחרוזת
     required: true
   },
   condition: {
     type: String,
     required: true
   }
-}, { timestamps: true }); // ייצור אוטומטי של createdAt ו-updatedAt
+}, { timestamps: true }); // מוסיף createdAt ו-updatedAt אוטומטית
 
 const DonatedBook = mongoose.model('DonatedBook', donatedBookSchema);
 
