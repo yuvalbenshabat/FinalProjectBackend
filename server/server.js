@@ -20,7 +20,8 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://your-frontend-url.onrender.com",
+    origin: "https://finalproject-frontend-ncn5.onrender.com"
+,
     methods: ["GET", "POST"]
   }
 });
