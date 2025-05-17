@@ -44,21 +44,11 @@ router.get('/', async (req, res) => {
     const userLng = parseFloat(req.query.lng);
     const sortByDistance = !isNaN(userLat) && !isNaN(userLng);
 
-    console.log('User location:', { userLat, userLng }); // Debug log
-
     const results = await DonatedBook.aggregate([
       { $match: filters },
       {
         $addFields: {
           userObjectId: { $toObjectId: "$userId" }
-        }
-      },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'userObjectId',
-          foreignField: '_id',
-          as: 'userDetails'
         }
       },
       {
@@ -82,53 +72,40 @@ router.get('/', async (req, res) => {
         }
       },
       {
+        $lookup: {
+          from: 'users',
+          localField: 'userObjectId',
+          foreignField: '_id',
+          as: 'userDetails'
+        }
+      },
+      {
         $addFields: {
           subject: { $arrayElemAt: ['$bookDetails.subject', 0] },
           username: { $arrayElemAt: ['$userDetails.username', 0] },
           phone: { $arrayElemAt: ['$userDetails.phone', 0] },
           city: { $arrayElemAt: ['$userDetails.city', 0] },
-          location: { $arrayElemAt: ['$userDetails.location', 0] }
+          lat: { $arrayElemAt: ['$userDetails.location.lat', 0] },
+          lng: { $arrayElemAt: ['$userDetails.location.lng', 0] }
         }
       },
       {
         $project: {
           bookDetails: 0,
           userDetails: 0,
-          userObjectId: 0,
-          _id: 1,
-          userId: 1,
-          bookTitle: 1,
-          author: 1,
-          grade: 1,
-          condition: 1,
-          subject: 1,
-          username: 1,
-          phone: 1,
-          city: 1,
-          location: 1
+          userObjectId: 0
         }
       }
     ]);
 
-    console.log('Books before distance calculation:', results); // Debug log
-
     if (sortByDistance) {
-      results.forEach(book => {
-        if (book.location && book.location.lat && book.location.lng) {
-          book.distanceKm = Math.round(
-            haversineDistance(
-              userLat,
-              userLng,
-              parseFloat(book.location.lat),
-              parseFloat(book.location.lng)
-            ) * 10
-          ) / 10;
-          console.log(`Distance calculated for book ${book.bookTitle}:`, book.distanceKm); // Debug log
+      for (let book of results) {
+        if (book.lat && book.lng) {
+          book.distanceKm = Math.round(haversineDistance(userLat, userLng, book.lat, book.lng) * 10) / 10;
         } else {
           book.distanceKm = null;
-          console.log(`No location data for book ${book.bookTitle}`); // Debug log
         }
-      });
+      }
 
       results.sort((a, b) => {
         if (a.distanceKm === null) return 1;
@@ -137,7 +114,6 @@ router.get('/', async (req, res) => {
       });
     }
 
-    console.log('Final results with distances:', results); // Debug log
     res.json(results);
   } catch (err) {
     console.error("❌ שגיאה בשליפת ספרים:", err);
