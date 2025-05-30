@@ -1,3 +1,4 @@
+
 // 📁 נתיב: /routes/donatedBooks.js
 const express = require('express');
 const router = express.Router();
@@ -89,6 +90,12 @@ router.get('/', async (req, res) => {
           lng: { $arrayElemAt: ['$userDetails.location.lng', 0] }
         }
       },
+      // ✅ Filter by city if provided
+      ...(req.query.city ? [{
+        $match: {
+          city: { $regex: req.query.city, $options: 'i' }
+        }
+      }] : []),
       {
         $project: {
           bookDetails: 0,
