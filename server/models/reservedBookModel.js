@@ -1,61 +1,66 @@
+/**
+ * Reserved Book Model - Represents a book that has been reserved by a user
+ * Used for managing book reservations and tracking borrowed books
+ */
 const mongoose = require('mongoose');
 
 const reservedBookSchema = new mongoose.Schema({
-  donatedBookId: {
+  donatedBookId: {        // Reference to the original donated book
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: 'DonatedBook' // קישור לספר המקורי
+    ref: 'DonatedBook'
   },
-  userId: {
+  userId: {               // ID of the user who reserved the book
     type: String,
     required: true
   },
-    username: { type: String,
+  username: {             // Username of the reserver
+    type: String,
     required: true 
   },
-  reservedBy: {
+  reservedBy: {           // Name of the person who reserved the book
     type: String,
     required: true
   },
-  bookTitle: {
+  bookTitle: {            // Title of the reserved book
     type: String,
     required: true
   },
-  author: {
+  author: {               // Author of the book
     type: String,
     required: true
   },
-  grade: {
+  grade: {                // Grade level of the book
     type: String,
     required: true
   },
-  barcode: {
+  barcode: {              // Book's barcode
     type: mongoose.Schema.Types.Mixed,
     required: true
   },
-  condition: {
+  condition: {            // Physical condition of the book
     type: String,
     required: true
   },
-  subject: {
+  subject: {              // Subject/Course of the book
     type: String
   },
-  reservedUntil: {
+  reservedUntil: {        // Reservation end date
     type: Date,
     required: true
   },
-  imgUrl: {
+  imgUrl: {               // URL to book's image
     type: String,
     default: null
   },
-  // ✅ שדה חדש - מזהה הספר מרשימת המשאלות אם רלוונטי
-  wishlistBookId: {
+  // New field - wishlist book ID if relevant
+  wishlistBookId: {       // Reference to wishlist item if reserved from wishlist
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Wishlist',
     default: null
   }
 
-}, { timestamps: true });
+}, { timestamps: true }); // Adds createdAt and updatedAt timestamps
 
 const ReservedBook = mongoose.model('ReservedBook', reservedBookSchema);
 

@@ -5,19 +5,22 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
-const {
-  Types: { ObjectId },
-} = mongoose;
+const { isValidObjectId } = mongoose;  // Import only what we need
 require("dotenv").config();
 
 const User = require("./models/userModel");
 const Message = require("./models/messageModel");
-const bookRoutes = require("./routes/books");
-const donatedBooksRouter = require("./routes/donatedBooks");
-const reservedBooksRoutes = require("./routes/reservedBooks");
+const bookRoutes = require("./routes/bookRoutes");
+const donatedBooksRouter = require("./routes/donatedBookRoutes");
+const reservedBooksRoutes = require("./routes/reservedBookRoutes");
 const autoReleaseReservations = require("./utils/autoReleaseReservations");
-const childrenRoutes = require("./routes/children");
-const wishlistRoutes = require("./routes/wishlist");
+const childRoutes = require("./routes/childRoutes");
+const wishlistRoutes = require("./routes/wishlistRoutes");
+
+// Common error response
+const SERVER_ERROR = { message: "שגיאה בשרת" };
+// Common user projection
+const USER_PROJECTION = "username city _id";
 
 const app = express();
 const server = http.createServer(app);
@@ -84,17 +87,17 @@ app.use(async (req, res, next) => {
 app.use("/api/books", bookRoutes);
 app.use("/api/donatedBooks", donatedBooksRouter);
 app.use("/api/reservedBooks", reservedBooksRoutes);
-app.use("/api/children", childrenRoutes);
+app.use("/api/children", childRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 
 // ✅ שליפת משתמשים
 app.get("/api/users", async (req, res) => {
   try {
-    const users = await User.find({}, "username city _id");
+    const users = await User.find({}, USER_PROJECTION);
     res.json(users);
   } catch (err) {
     console.error("❌ שגיאה בשליפת משתמשים:", err);
-    res.status(500).json({ message: "שגיאה בשרת" });
+    res.status(500).json(SERVER_ERROR);
   }
 });
 
@@ -106,7 +109,7 @@ app.get("/api/messages/user/:username", async (req, res) => {
     res.json(rooms);
   } catch (err) {
     console.error("❌ שגיאה בשליפת חדרים לפי משתמש:", err);
-    res.status(500).json({ message: "שגיאה בשרת" });
+    res.status(500).json(SERVER_ERROR);
   }
 });
 
@@ -119,7 +122,7 @@ app.get("/api/messages/room/:roomId", async (req, res) => {
     res.json(messages);
   } catch (err) {
     console.error("❌ שגיאה בשליפת הודעות לפי חדר:", err);
-    res.status(500).json({ message: "שגיאה בשרת" });
+    res.status(500).json(SERVER_ERROR);
   }
 });
 
@@ -148,7 +151,7 @@ app.get("/api/messages/:username", async (req, res) => {
         const ids = rid.split("_");
         const otherId = ids.find((id) => id !== myId);
         try {
-          return ObjectId.isValid(otherId) ? otherId : null;
+          return isValidObjectId(otherId) ? otherId : null;
         } catch (err) {
           console.error("❌ ID לא תקין:", otherId);
           return null;
@@ -160,14 +163,14 @@ app.get("/api/messages/:username", async (req, res) => {
 
     const users = await User.find(
       { _id: { $in: userIds } },
-      "username city _id"
+      USER_PROJECTION
     );
     console.log("✅ נמצאו משתמשים:", users.length);
 
     res.json(users);
   } catch (err) {
     console.error("❌ שגיאה בשליפת שיחות אחרונות:", err);
-    res.status(500).json({ message: "שגיאה בשרת", error: err.message });
+    res.status(500).json(SERVER_ERROR);
   }
 });
 
@@ -195,7 +198,7 @@ app.post("/register", async (req, res) => {
     res.status(201).json({ message: "ההרשמה הצליחה!" });
   } catch (err) {
     console.error("❌ שגיאה בהרשמה:", err);
-    res.status(500).json({ message: "שגיאה בשרת" });
+    res.status(500).json(SERVER_ERROR);
   }
 });
 
@@ -213,7 +216,7 @@ app.post("/login", async (req, res) => {
     res.status(200).json({ message: "התחברת בהצלחה", user });
   } catch (err) {
     console.error("❌ שגיאה בכניסה:", err);
-    res.status(500).json({ message: "שגיאה בשרת" });
+    res.status(500).json(SERVER_ERROR);
   }
 });
 

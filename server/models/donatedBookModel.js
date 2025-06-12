@@ -1,43 +1,47 @@
+/**
+ * Donated Book Model - Represents a book donated by a user
+ * Used for managing the book donation system and tracking donated books
+ */
 const mongoose = require('mongoose');
 
 const donatedBookSchema = new mongoose.Schema({
-  userId: {
+  userId: {              // Reference to the donor
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
   
-  bookTitle: {
+  bookTitle: {           // Title of the donated book
     type: String,
     required: true
   },
-  author: {
+  author: {              // Author of the book
     type: String,
     required: true
   },
-  grade: {
+  grade: {               // Grade level the book is intended for
     type: String,
     required: true
   },
-  barcode: {
+  barcode: {             // Book's barcode (can be number or string)
     type: mongoose.Schema.Types.Mixed,
     required: true
   },
-  condition: {
+  condition: {           // Physical condition of the book
     type: String,
     required: true
   },
-  imgUrl: {
+  imgUrl: {              // URL to book's image
     type: String,
     default: null,
     validate: {
       validator: function(v) {
         return v === null || typeof v === 'string';
       },
-      message: 'imgUrl must be null or a string'
+      message: 'כתובת התמונה חייבת להיות ריקה או מחרוזת'
     }
   }
-}, { timestamps: true });
+}, { timestamps: true }); // Adds createdAt and updatedAt timestamps
 
 const DonatedBook = mongoose.model('DonatedBook', donatedBookSchema);
 

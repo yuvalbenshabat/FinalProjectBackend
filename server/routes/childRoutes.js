@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Child = require("../models/childModel");
 
-// קבלת ילדים של משתמש
+// Get user's children
 router.get("/:userId", async (req, res) => {
   try {
     const children = await Child.find({ userId: req.params.userId });
@@ -12,7 +12,7 @@ router.get("/:userId", async (req, res) => {
   }
 });
 
-// הוספת ילד
+// Add a child
 router.post("/", async (req, res) => {
   try {
     const { name, grade, userId } = req.body;

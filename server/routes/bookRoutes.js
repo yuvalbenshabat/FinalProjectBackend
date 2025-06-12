@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const Book = require("../models/Book");
+const Book = require("../models/bookModel");
 
-// ✅ ניקוי רווחים, מקפים, ואפסים - קיצוץ ספרת ביקורת רק אם יש צורך
+// Clean spaces, hyphens, and zeros - trim check digit only if needed
 const cleanBarcode = (barcode) => {
   const cleaned = barcode.replace(/\s|-/g, "").replace(/0/g, "");
   return cleaned.length >= 10 ? cleaned.slice(0, -1) : cleaned;
@@ -13,15 +13,15 @@ router.get("/barcode/:barcode", async (req, res) => {
   const cleaned = cleanBarcode(raw);
   const cleanedNumber = Number(cleaned);
 
-  console.log("📥 barcode raw:", raw);
-  console.log("🔍 cleaned barcode:", cleaned);
-  console.log("🔢 parsed to number:", cleanedNumber);
+  console.log("📥 ברקוד גולמי:", raw);
+  console.log("🔍 ברקוד לאחר ניקוי:", cleaned);
+  console.log("🔢 המרה למספר:", cleanedNumber);
 
   try {
-    // 🔎 נסה לחפש לפי מספר
+    // Try to find by number
     let book = await Book.findOne({ barcode: cleanedNumber });
 
-    // ❗אם לא נמצא - נסה כמחרוזת
+    // If not found - try as string
     if (!book) {
       book = await Book.findOne({ barcode: cleaned });
       if (book) console.log("🔁 נמצא לפי מחרוזת!");
@@ -36,18 +36,18 @@ router.get("/barcode/:barcode", async (req, res) => {
       });
     } else {
       console.log("❌ הספר לא נמצא במסד הנתונים");
-      res.status(404).json({ error: "Book not found" });
+      res.status(404).json({ error: "הספר לא נמצא" });
     }
   } catch (err) {
-    console.error("❌ Server error:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error("❌ שגיאת שרת:", err);
+    res.status(500).json({ error: "שגיאת שרת" });
   }
 });
 
 module.exports = router;
 
 
-// ✅ שליפת כל הספרים המאושרים
+// Get all approved books
 router.get("/", async (req, res) => {
   try {
     const books = await Book.find();

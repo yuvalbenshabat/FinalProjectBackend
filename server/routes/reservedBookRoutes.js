@@ -2,22 +2,22 @@ const express = require('express');
 const router = express.Router();
 const DonatedBook = require('../models/donatedBookModel');
 const ReservedBook = require('../models/reservedBookModel');
-const Book = require('../models/Book');
-const Wishlist = require('../models/wishlistModel'); // ✅ חדש
-const User = require('../models/userModel'); // ✅ הוספת ייבוא של מודל המשתמשים
+const Book = require('../models/bookModel');
+const Wishlist = require('../models/wishlistModel'); // Added Wishlist model
+const User = require('../models/userModel'); // Added User model import
 
-// ✅ שריון ספר
+// Reserve a book
 router.post('/reserve/:id', async (req, res) => {
   try {
     const donatedBookId = req.params.id;
-    const { reservedBy, wishlistBookId } = req.body; // ✅ קלט נוסף
+    const { reservedBy, wishlistBookId } = req.body; // Additional input
 
     const bookToReserve = await DonatedBook.findById(donatedBookId);
     if (!bookToReserve) {
       return res.status(404).json({ message: 'הספר לא נמצא במאגר התרומות' });
     }
 
-    // ✅ מביא את שם המשתמש התורם
+    // Get donor's username
     const donorUser = await User.findById(bookToReserve.userId);
     if (!donorUser) {
       return res.status(404).json({ message: 'לא נמצא המשתמש התורם' });
@@ -26,7 +26,7 @@ router.post('/reserve/:id', async (req, res) => {
     const reservedBook = new ReservedBook({
       donatedBookId: bookToReserve._id,
       userId: bookToReserve.userId,
-      username: donorUser.username, // ✅ שימוש בשם המשתמש מהמודל
+      username: donorUser.username, // Use username from user model
       reservedBy,
       bookTitle: bookToReserve.bookTitle,
       author: bookToReserve.author,
@@ -35,11 +35,11 @@ router.post('/reserve/:id', async (req, res) => {
       condition: bookToReserve.condition,
       imgUrl: bookToReserve.imgUrl,
       reservedUntil: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-      wishlistBookId: wishlistBookId || null // ✅ קישור אם קיים
+      wishlistBookId: wishlistBookId || null // Link if exists
     });
 
     await reservedBook.save();
-    await DonatedBook.findByIdAndDelete(donatedBookId); // הסרה מהתרומות
+    await DonatedBook.findByIdAndDelete(donatedBookId); // Remove from donations
 
     res.status(200).json({ message: '✅ הספר שוריין בהצלחה', reservedBook });
   } catch (error) {
@@ -48,7 +48,7 @@ router.post('/reserve/:id', async (req, res) => {
   }
 });
 
-// ✅ ביטול שריון
+// Cancel reservation
 router.delete('/cancel/:id', async (req, res) => {
   try {
     const reservedBookId = req.params.id;
@@ -78,7 +78,7 @@ router.delete('/cancel/:id', async (req, res) => {
   }
 });
 
-// ✅ אישור קבלה
+// Confirm receipt
 router.delete('/confirm/:id', async (req, res) => {
   try {
     const reservedBookId = req.params.id;
@@ -88,7 +88,7 @@ router.delete('/confirm/:id', async (req, res) => {
       return res.status(404).json({ message: "ספר משוריין לא נמצא" });
     }
 
-    // ✅ אם קושר ל־wishlist → מחק גם שם
+    // If linked to wishlist → delete there too
     if (reservedBook.wishlistBookId) {
       await Wishlist.findByIdAndDelete(reservedBook.wishlistBookId);
     }
@@ -102,7 +102,7 @@ router.delete('/confirm/:id', async (req, res) => {
   }
 });
 
-// ✅ שליפה של ספרים משוריינים עם subject
+// Get reserved books with subject
 router.get('/user/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;

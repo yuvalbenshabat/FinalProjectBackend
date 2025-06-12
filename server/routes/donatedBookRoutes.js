@@ -1,11 +1,11 @@
-// 📁 נתיב: /routes/donatedBooks.js
+// File: /routes/donatedBooks.js
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const DonatedBook = require('../models/donatedBookModel');
 const haversineDistance = require('../utils/calcDistance');
 
-// POST /api/donatedBooks - שמירת ספר
+// POST /api/donatedBooks - Save a donated book
 router.post('/', async (req, res) => {
   try {
     const { userId, bookTitle, author, grade, barcode, condition, imgUrl } = req.body;
@@ -32,7 +32,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /api/donatedBooks - חיפוש חכם עם מיון לפי קרבה
+// GET /api/donatedBooks - Smart search with distance-based sorting
 router.get('/', async (req, res) => {
   try {
     const filters = {};

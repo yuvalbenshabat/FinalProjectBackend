@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Wishlist = require("../models/wishlistModel");
 
-// קבל את כל הספרים של ילד מסוים לפי childId
+// Get all books for a specific child by childId
 router.get("/:childId", async (req, res) => {
   try {
     const wishlist = await Wishlist.find({ childId: req.params.childId });
@@ -12,7 +12,7 @@ router.get("/:childId", async (req, res) => {
   }
 });
 
-// הוסף ספר לרשימת משאלות
+// Add a book to wishlist
 router.post("/", async (req, res) => {
   try {
     const { childId, title, author } = req.body;
@@ -27,7 +27,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// מחק ספר לפי מזהה
+// Delete a book by ID
 router.delete("/:id", async (req, res) => {
   try {
     await Wishlist.findByIdAndDelete(req.params.id);
